@@ -100,6 +100,13 @@ COPY requirements.txt /app/
 
 WORKDIR /app
 
+# Copy git configuration files first to initialize submodules
+COPY .gitmodules ./
+COPY .git ./.git
+
+# Initialize and update submodules
+RUN git submodule init && git submodule update --recursive
+
 # Install dimos requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -128,7 +135,7 @@ COPY docker/unitree/agents/supervisord.conf /etc/supervisor/conf.d/supervisord.c
 COPY docker/unitree/agents/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Copy dimos and tests
+# Copy dimos and tests after submodules are initialized
 COPY dimos /app/dimos/
 COPY tests /app/tests
 COPY dimos/__init__.py /app/__init__.py
