@@ -18,6 +18,7 @@ import torch
 from PIL import Image
 import cv2
 import numpy as np
+from dimos.utils.device_utils import get_device
 
 # May need to add this back for import to work
 # external_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'external', 'Metric3D'))
@@ -29,9 +30,14 @@ class Metric3D:
     def __init__(self, gt_depth_scale=256.0):
         #self.conf = get_config("zoedepth", "infer")
         #self.depth_model = build_model(self.conf)
-        self.depth_model = torch.hub.load('yvanyin/metric3d', 'metric3d_vit_small', pretrain=True).cuda()
-        if torch.cuda.device_count() > 1:
-            print(f"Using {torch.cuda.device_count()} GPUs!")
+        device = get_device()
+        self.depth_model = torch.hub.load('yvanyin/metric3d', 'metric3d_vit_small', pretrain=True)
+        if device == 'cuda':
+            self.depth_model = self.depth_model.cuda()
+            if torch.cuda.device_count() > 1:
+                print(f"Using {torch.cuda.device_count()} GPUs!")
+        else:
+            print("Using CPU for depth model")
             #self.depth_model = torch.nn.DataParallel(self.depth_model)
         self.depth_model.eval()
 
@@ -113,7 +119,11 @@ class Metric3D:
         std = torch.tensor([58.395, 57.12, 57.375]).float()[:, None, None]
         rgb = torch.from_numpy(rgb.transpose((2, 0, 1))).float()
         rgb = torch.div((rgb - mean), std)
-        rgb = rgb[None, :, :, :].cuda()
+        device = get_device()
+        if device == 'cuda':
+            rgb = rgb[None, :, :, :].cuda()
+        else:
+            rgb = rgb[None, :, :, :]
         return rgb
     def unpad_transform_depth(self, pred_depth):
         # un pad
@@ -134,14 +144,17 @@ class Metric3D:
 
 
     """Set new intrinsic value."""
-    def update_intrinsic(self, intrinsic):
+    def set_intrinsic(self, intrinsic):
         self.intrinsic = intrinsic
 
     def eval_predicted_depth(self, depth_file, pred_depth):
         if depth_file is not None:
             gt_depth = cv2.imread(depth_file, -1)
             gt_depth = gt_depth / self.gt_depth_scale
-            gt_depth = torch.from_numpy(gt_depth).float().cuda()
+            gt_depth = torch.from_numpy(gt_depth).float()
+            device = get_device()
+            if device == 'cuda':
+                gt_depth = gt_depth.cuda()
             assert gt_depth.shape == pred_depth.shape
 
             mask = (gt_depth > 1e-8)

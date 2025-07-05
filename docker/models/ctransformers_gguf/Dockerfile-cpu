@@ -1,0 +1,42 @@
+FROM python:3.10-slim
+
+# Set up Python environment
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    libgl1-mesa-glx \
+    build-essential \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libpostproc-dev \
+    gcc \
+    make \
+    portaudio19-dev \
+    python3-pyaudio \
+    python3-all-dev \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Change working directory to /app for proper relative pathing
+WORKDIR /app
+
+COPY requirements.txt ./
+
+# Install CPU-only dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./dimos ./dimos
+
+COPY ./tests ./tests
+
+COPY ./dimos/__init__.py ./
+
+# Set environment variables for CPU execution
+ENV DIMOS_DEVICE=cpu
+ENV DIMOS_GPU_LAYERS=0
+
+CMD [ "python", "-m", "tests.test_agent_ctransformers_gguf" ]

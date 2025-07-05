@@ -1,0 +1,12 @@
+# GPU-specific dependencies
+# Install these in addition to requirements.txt for GPU support
+
+# CTransforms with CUDA support
+ctransformers[cuda]==0.2.27
+
+# GPU acceleration for transformers
+xformers==0.0.20
+
+# PyTorch with CUDA support (uncomment if needed)
+# torch>=1.13.0+cu117
+# torchvision>=0.14.0+cu117

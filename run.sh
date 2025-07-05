@@ -7,9 +7,11 @@ show_menu() {
   echo "Available commands:"
   echo "  0 | unitree     : Build and run dimOS agent & interface with unitree go2"
   echo "  1 | web         : Build and run web-os container"
-  echo "  2 | hf-local    : Build and run huggingface local model"
+  echo "  2 | hf-local    : Build and run huggingface local model (GPU)"
   echo "  3 | hf-remote   : Build and run huggingface remote model"
-  echo "  4 | gguf        : Build and run ctransformers-gguf model"
+  echo "  4 | gguf        : Build and run ctransformers-gguf model (GPU)"
+  echo "  5 | hf-local-cpu: Build and run huggingface local model (CPU)"
+  echo "  6 | gguf-cpu    : Build and run ctransformers-gguf model (CPU)"
   echo "=================================="
 }
 
@@ -55,6 +57,12 @@ case $option in
     ;;
   4|gguf)
     run_docker_compose "./docker/models/ctransformers_gguf/docker-compose.yml"
+    ;;
+  5|hf-local-cpu)
+    run_docker_compose "./docker/models/huggingface_local/docker-compose-cpu.yml"
+    ;;
+  6|gguf-cpu)
+    run_docker_compose "./docker/models/ctransformers_gguf/docker-compose-cpu.yml"
     ;;
   help|--help|-h)
     show_menu
