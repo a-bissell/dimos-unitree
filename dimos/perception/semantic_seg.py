@@ -18,6 +18,7 @@ from dimos.hardware.camera import Camera
 from reactivex import Observable
 from reactivex import operators as ops
 from dimos.types.segmentation import SegmentationType
+from dimos.utils.device_utils import get_device
 import numpy as np
 import cv2
 
@@ -26,7 +27,7 @@ class SemanticSegmentationStream:
     def __init__(
         self, 
         model_path: str = "FastSAM-s.pt",
-        device: str = "cuda",
+        device: str = "auto",
         enable_mono_depth: bool = True,
         enable_rich_labeling: bool = True,
         camera_params: dict = None,
@@ -37,16 +38,17 @@ class SemanticSegmentationStream:
         
         Args:
             model_path: Path to the FastSAM model file
-            device: Computation device ("cuda" or "cpu")
+            device: Computation device ("cuda", "cpu", or "auto")
             enable_mono_depth: Whether to enable monocular depth processing
             enable_rich_labeling: Whether to enable rich labeling
             camera_params: Dictionary containing either:
                 - Direct intrinsics: [fx, fy, cx, cy]
                 - Physical parameters: resolution, focal_length, sensor_size
         """
+        actual_device = get_device(device if device != "auto" else None)
         self.segmenter = Sam2DSegmenter(
             model_path=model_path,
-            device=device,
+            device=actual_device,
             min_analysis_interval=5.0,
             use_tracker=True,
             use_analyzer=True,

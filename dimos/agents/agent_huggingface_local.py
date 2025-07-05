@@ -36,6 +36,7 @@ from dimos.agents.prompt_builder.impl import PromptBuilder
 from dimos.agents.tokenizer.base import AbstractTokenizer
 from dimos.agents.tokenizer.huggingface_tokenizer import HuggingFaceTokenizer
 from dimos.utils.logging_config import setup_logger
+from dimos.utils.device_utils import get_device, get_torch_dtype
 
 # Initialize environment variables
 load_dotenv()
@@ -87,13 +88,15 @@ class HuggingFaceLocalAgent(LLMAgent):
         os.makedirs(self.output_dir, exist_ok=True)
 
         self.model_name = model_name
-        self.device = device
-        if self.device == "auto":
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-            if self.device == "cuda":
+        self.device = get_device(device if device != "auto" else None)
+        
+        if self.device == "cuda":
+            try:
                 print(f"Using GPU: {torch.cuda.get_device_name(0)}")
-            else:
-                print("GPU not available, using CPU")
+            except:
+                print("Using CUDA device")
+        else:
+            print("Using CPU")
         print(f"Device: {self.device}")
 
         self.tokenizer = tokenizer or HuggingFaceTokenizer(self.model_name)
@@ -103,9 +106,10 @@ class HuggingFaceLocalAgent(LLMAgent):
             tokenizer=self.tokenizer
         )
 
+        torch_dtype = get_torch_dtype(self.device)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            torch_dtype=torch_dtype,
             device_map=self.device
         )
 

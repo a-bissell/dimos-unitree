@@ -1,0 +1,30 @@
+---
+services:
+  dimos-model-huggingface-local-cpu:
+    image: dimos-model-huggingface-local-cpu:latest
+    build: 
+      context: ../../../
+      dockerfile: docker/models/huggingface_local/Dockerfile-cpu
+    env_file:
+      - ../../../.env
+    mem_limit: 8048m
+    volumes:
+      - ../../../assets:/app/assets
+      - ../../../assets/model-cache:/root/.cache/huggingface/hub
+    ports:
+      - "5555:5555"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DIMOS_DEVICE=cpu
+    command: [ "python", "-m", "tests.test_agent_huggingface_local.py" ]
+    stdin_open: true
+    tty: true
+
+# CPU-only version - no GPU dependencies required
+
+# ----
+# TO RUN:
+#   docker build -f ./Dockerfile-cpu -t dimos-models-cpu ../../ && docker compose -f docker-compose-cpu.yml up
+# GO TO:
+#   127.0.0.1:5555 (when flask server fixed)
+# ----

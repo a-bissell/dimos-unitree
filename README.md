@@ -64,6 +64,28 @@ We are shipping a first look at the DIMOS x Unitree Go2 integration, allowing fo
 - The robot's IP address
 - OpenAI API Key
 
+### CPU vs GPU Execution
+
+DIMOS now supports both CPU-only and GPU-accelerated execution:
+
+**CPU-Only (Default)**: Runs on any system without GPU requirements
+- Use `./run.sh 5` for HuggingFace Local (CPU)
+- Use `./run.sh 6` for CTransformers GGUF (CPU)
+- No NVIDIA runtime required
+
+**GPU-Accelerated (Optional)**: Requires NVIDIA GPU and Docker runtime
+- Use `./run.sh 2` for HuggingFace Local (GPU)
+- Use `./run.sh 4` for CTransformers GGUF (GPU)
+- Requires NVIDIA Docker runtime
+
+For CPU-only execution, set environment variables:
+```bash
+export DIMOS_DEVICE=cpu
+export DIMOS_GPU_LAYERS=0
+```
+
+For more details, see [CPU Migration Guide](CPU_MIGRATION_GUIDE.md).
+
 ### Configuration:
 
 Configure your environment variables in `.env`
@@ -111,11 +133,17 @@ sudo apt install portaudio19-dev python3-pyaudio
 # Install torch and torchvision if not already installed
 pip install -r base-requirements.txt
 
-# Install dependencies
+# Install CPU-compatible dependencies (default)
 pip install -r requirements.txt
+
+# Optional: Install GPU-specific dependencies for better performance
+# pip install -r requirements-gpu.txt
 
 # Copy and configure environment variables
 cp default.env .env
+
+# Test CPU compatibility (optional)
+python tests/test_cpu_compatibility.py
 ```
 
 ### Agent API keys

@@ -1,0 +1,31 @@
+---
+services:
+  dimos-model-ctransformers-gguf-cpu:
+    image: dimos-model-ctransformers-gguf-cpu:latest
+    build: 
+      context: ../../../
+      dockerfile: docker/models/ctransformers_gguf/Dockerfile-cpu
+    env_file:
+      - ../../../.env
+    mem_limit: 8048m
+    volumes:
+      - ../../../assets:/app/assets
+      - ../../../assets/model-cache:/root/.cache/huggingface/hub
+    ports:
+      - "5555:5555"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DIMOS_DEVICE=cpu
+      - DIMOS_GPU_LAYERS=0
+    command: [ "python", "-m", "tests.test_agent_ctransformers_gguf" ]
+    stdin_open: true
+    tty: true
+
+# CPU-only version - no GPU dependencies required
+
+# ----
+# TO RUN:
+#   docker build -f ./Dockerfile-cpu -t dimos-models-cpu ../../ && docker compose -f docker-compose-cpu.yml up
+# GO TO:
+#   127.0.0.1:5555 (when flask server fixed)
+# ----
