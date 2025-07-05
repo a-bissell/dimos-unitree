@@ -98,6 +98,13 @@ COPY requirements.txt /app/
 
 WORKDIR /app
 
+# Copy git configuration files first to initialize submodules
+COPY .gitmodules ./
+COPY .git ./.git
+
+# Initialize and update submodules
+RUN git submodule init && git submodule update --recursive
+
 # Install dimos requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -118,7 +125,7 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
 
 # Set environment variables
-# webrtc or cyclonedds
+# webrtc or cyclonedx
 ENV CONN_TYPE="webrtc" 
 ENV WEBRTC_SERVER_HOST="0.0.0.0"
 ENV WEBRTC_SERVER_PORT="9991"
@@ -132,6 +139,7 @@ COPY docker/unitree/ros_dimos/supervisord.conf /etc/supervisor/conf.d/supervisor
 COPY docker/unitree/ros_dimos/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Copy dimos and tests after submodules are initialized
 COPY dimos /app/dimos/
 COPY tests /app/tests/
 

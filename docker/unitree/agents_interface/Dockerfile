@@ -40,6 +40,8 @@ RUN apt-get update && apt-get install -y \
     qt5-qmake \
     qtbase5-dev-tools \
     supervisor \
+    screen \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install specific numpy version first
@@ -102,6 +104,13 @@ COPY base-requirements.txt /app/
 
 WORKDIR /app
 
+# Copy git configuration files first to initialize submodules
+COPY .gitmodules ./
+COPY .git ./.git
+
+# Initialize and update submodules
+RUN git submodule init && git submodule update --recursive
+
 # Install torch and torchvision first due to builds in requirements.txt
 RUN pip install --no-cache-dir -r base-requirements.txt
 
@@ -133,7 +142,7 @@ COPY docker/unitree/agents_interface/supervisord.conf /etc/supervisor/conf.d/sup
 COPY docker/unitree/agents_interface/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Copy dimos and tests
+# Copy dimos and tests after submodules are initialized
 COPY dimos /app/dimos/
 COPY tests /app/tests
 COPY dimos/__init__.py /app/__init__.py
